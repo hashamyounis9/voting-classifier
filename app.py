@@ -99,3 +99,24 @@ predicted_class = (prediction > 0.5).astype(int)
 
 gender = "M" if predicted_class[0][0] == 1 else "F"
 print("ANN prediction:", gender)
+
+
+
+
+
+#######################
+
+
+
+randomforest_model = RandomForestClassifier(n_estimators=100, random_state=42)
+
+randomforest_model.fit(x_train, y_train)
+
+y_predicted = randomforest_model.predict(x_test)
+
+prediction = randomforest_model.predict(new_sample)
+
+
+gender = "M" if prediction[0] == 1 else "F"
+
+print("Random Forest prediction:", gender)
