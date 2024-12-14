@@ -1,1 +1,1 @@
-# voting-classifier
+# Voting Classifier
