@@ -83,8 +83,6 @@ ann_model.add(Dense(1, activation='sigmoid'))
 ann_model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 ann_model.fit(x_train, y_train, epochs=50, batch_size=8, verbose=0)
 
-
-ann_model.evaluate(x_test, y_test, verbose=0)
 prediction = ann_model.predict(sample)
 predicted_class = (prediction > 0.5).astype(int)
 votes.insert(1, prediction[0])
@@ -107,4 +105,4 @@ prediction = randomforest_model.predict(sample)
 votes.insert(2, prediction[0])
 gender = '🟡 Edible' if prediction[0] == 1 else '⚫ Poisonous'
 
-print(gender, "is the predicted class by RF model")# # Calculating accuracy manually just for fun
+print(gender, "is the predicted class by RF model")
