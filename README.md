@@ -23,3 +23,8 @@ python -m venv virtualenv
 ```bash
 pip install -r requirements.txt
 ```
+## Runnig
+```bash
+python app.py sample.csv
+```
+Note: sample.csv data is used during development as it contains a subset of the actual dataset mushrooms.csv
