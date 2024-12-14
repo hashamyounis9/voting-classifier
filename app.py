@@ -11,6 +11,16 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Input
 
+# Calculating accuracy manually just for fun
+def accuracy(y_actual, y_predicted):
+    correction_predictions_count = 0
+    for i in range(0, len(y_actual)):
+        if y_predicted[i] == y_actual[i]:
+            correction_predictions_count = correction_predictions_count + 1
+
+    acc_score = (correction_predictions_count / len(y_actual)) * 100    
+    return acc_score
+
 if len(sys.argv) != 2:
     print("Usage: python app.py dataset.csv")
     sys.exit(1)
@@ -97,4 +107,4 @@ prediction = randomforest_model.predict(sample)
 votes.insert(2, prediction[0])
 gender = '🟡 Edible' if prediction[0] == 1 else '⚫ Poisonous'
 
-print(gender, "is the predicted class by RF model")
+print(gender, "is the predicted class by RF model")# # Calculating accuracy manually just for fun
