@@ -1,152 +1,98 @@
+from mpi4py import MPI
 import sys
 import numpy as np
 import pandas as pd
-from collections import Counter
-
 from sklearn import svm
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
-
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Input
 
-# Calculating accuracy manually just for fun
-def accuracy(y_actual, y_predicted):
-    correction_predictions_count = 0
-    for i in range(0, len(y_actual)):
-        if y_predicted[i] == y_actual[i]:
-            correction_predictions_count = correction_predictions_count + 1
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+size = comm.Get_size()
 
-    acc_score = (correction_predictions_count / len(y_actual)) * 100    
-    return acc_score
+# Define the number of worker ranks needed
+required_ranks = 5  # 1 for rank 0 (master), and 5 for the models
 
-if len(sys.argv) != 2:
-    print("Usage: python app.py dataset.csv")
-    sys.exit(1)
+if rank == 0:
+    if len(sys.argv) != 2:
+        print("Usage: python app.py dataset.csv")
+        sys.exit(1)
 
-datasets = ['mushrooms.csv', 'sample.csv']
-if sys.argv[1] not in datasets:
-    print("Invalid dataset file")
-    sys.exit(1)
+    datasets = ['mushrooms.csv', 'sample.csv']
+    if sys.argv[1] not in datasets:
+        print("Invalid dataset file")
+        sys.exit(1)
 
-print("Loading Dataset...", sys.argv[1])
-data = pd.read_csv(sys.argv[1])
+    print("Loading Dataset...", sys.argv[1])
+    data = pd.read_csv(sys.argv[1])
 
-x = data[['cap_diameter','cap_shape','gill_attachment','gill_color','stem_height','stem_width','stem_color','season']].values
-y = data[['class']].values
+    x = data[['cap_diameter', 'cap_shape', 'gill_attachment', 'gill_color',
+              'stem_height', 'stem_width', 'stem_color', 'season']].values
+    y = data[['class']].values
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+    # Split and scale data
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+    scaler = StandardScaler()
+    x_train = scaler.fit_transform(x_train)
+    x_test = scaler.transform(x_test)
 
-scaler = StandardScaler()
-x_train = scaler.fit_transform(x_train)
-x_test = scaler.transform(x_test)
-sample = np.array([[1372,2,2,10,3.8074667544799388,1545,11,1.8042727086281731]])
+    # Send data to all worker ranks
+    for r in range(1, size):
+        comm.send((x_train, x_test, y_train, y_test), dest=r)
 
-votes = []
-#######################
+    # Receive predictions from workers
+    predictions = {}
+    for r in range(1, size):
+        model_predictions = comm.recv(source=r)
+        predictions[f"Model_{r}"] = model_predictions
 
-# SVM Model
+    print("\nModel predictions on x_test:")
+    for model, pred in predictions.items():
+        print(f"{model}: {pred}")
 
-#######################
+else:
+    # Receive data
+    x_train, x_test, y_train, y_test = comm.recv(source=0)
 
+    # Select model based on rank
+    if rank == 1:  # SVM
+        model = svm.SVC(kernel="linear", C=1.0)
+        model.fit(x_train, y_train)
+        predictions = model.predict(x_test)
 
-svm_model = svm.SVC(kernel="linear", C=1.0)
-svm_model.fit(x_train, y_train)
-y_predicted = svm_model.predict(x_test)
+    elif rank == 2:  # ANN
+        model = Sequential([
+            Input(shape=(8,)),
+            Dense(16, activation='relu'),
+            Dense(8, activation='relu'),
+            Dense(1, activation='sigmoid')
+        ])
+        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+        model.fit(x_train, y_train, epochs=50, batch_size=8, verbose=0)
+        predictions = (model.predict(x_test) > 0.5).astype(int).flatten()
 
-# just for better understanding as accuracy is calculated by comaring actual and predicted values
-y_actual = y_test
+    elif rank == 3:  # Random Forest
+        model = RandomForestClassifier(n_estimators=100, random_state=42)
+        model.fit(x_train, y_train)
+        predictions = model.predict(x_test)
 
-# make prediction for single sample
-prediction = svm_model.predict(sample)
-votes.insert(0, prediction[0])
-gender = '🟡 Edible' if prediction[0] == 1 else '⚫ Poisonous'
+    elif rank == 4:  # Logistic Regression
+        model = LogisticRegression()
+        model.fit(x_train, y_train)
+        predictions = model.predict(x_test)
 
-print(gender, "is the predicted class by SVM model")
+    elif rank == 5:  # k-NN
+        model = KNeighborsClassifier(n_neighbors=5)
+        model.fit(x_train, y_train)
+        predictions = model.predict(x_test)
 
+    else:
+        predictions = None
 
-#######################
-
-# ANN Model
-
-#######################
-
-
-ann_model = Sequential()
-ann_model.add(Input(shape=(8,)))
-ann_model.add(Dense(16, input_dim=8, activation='relu'))
-ann_model.add(Dense(8, activation='relu'))
-ann_model.add(Dense(1, activation='sigmoid'))
-
-ann_model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-ann_model.fit(x_train, y_train, epochs=50, batch_size=8, verbose=0)
-
-prediction = ann_model.predict(sample)
-predicted_class = (prediction > 0.5).astype(int)
-votes.insert(1, prediction[0])
-gender = '🟡 Edible' if prediction[0] == 1 else '⚫ Poisonous'
-print(gender, "is the predicted class by ANN model")
-
-
-#######################
-
-# RandomForest Model
-
-#######################
-
-
-randomforest_model = RandomForestClassifier(n_estimators=100, random_state=42)
-randomforest_model.fit(x_train, y_train)
-y_predicted = randomforest_model.predict(x_test)
-
-prediction = randomforest_model.predict(sample)
-votes.insert(2, prediction[0])
-gender = '🟡 Edible' if prediction[0] == 1 else '⚫ Poisonous'
-
-print(gender, "is the predicted class by RF model")
-
-
-#######################
-
-# Logistic Regression
-
-#######################
-
-logistic_model = LogisticRegression()
-logistic_model.fit(x_train, y_train)
-prediction = logistic_model.predict(sample)
-votes.append(prediction[0])
-gender = '🟡 Edible' if prediction[0] == 1 else '⚫ Poisonous'
-print(gender, "is the predicted class by Logistic Regression model")
-
-
-#######################
-
-# k-Nearest Neighbors (k-NN)
-
-#######################
-
-knn_model = KNeighborsClassifier(n_neighbors=5)
-knn_model.fit(x_train, y_train)
-prediction = knn_model.predict(sample)
-votes.append(prediction[0])
-gender = '🟡 Edible' if prediction[0] == 1 else '⚫ Poisonous'
-print(gender, "is the predicted class by k-NN model")
-
-
-#######################
-
-# Naive Bayes Gaussian
-
-#######################
-
-naive_bayes_model = GaussianNB()
-naive_bayes_model.fit(x_train, y_train)
-prediction = naive_bayes_model.predict(sample)
-votes.append(prediction[0])
-gender = '🟡 Edible' if prediction[0] == 1 else '⚫ Poisonous'
-print(gender, "is the predicted class by Naive Bayes Gaussian model")
+    # Send predictions back to rank 0
+    comm.send(predictions.tolist(), dest=0)
