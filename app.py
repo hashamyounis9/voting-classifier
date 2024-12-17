@@ -44,7 +44,6 @@ x_test = scaler.transform(x_test)
 sample = np.array([[1372,2,2,10,3.8074667544799388,1545,11,1.8042727086281731]])
 
 votes = []
-
 #######################
 
 # SVM Model
