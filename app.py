@@ -106,3 +106,45 @@ votes.insert(2, prediction[0])
 gender = '🟡 Edible' if prediction[0] == 1 else '⚫ Poisonous'
 
 print(gender, "is the predicted class by RF model")
+
+
+#######################
+
+# Logistic Regression
+
+#######################
+
+logistic_model = LogisticRegression()
+logistic_model.fit(x_train, y_train)
+prediction = logistic_model.predict(sample)
+votes.append(prediction[0])
+gender = '🟡 Edible' if prediction[0] == 1 else '⚫ Poisonous'
+print(gender, "is the predicted class by Logistic Regression model")
+
+
+#######################
+
+# k-Nearest Neighbors (k-NN)
+
+#######################
+
+knn_model = KNeighborsClassifier(n_neighbors=5)
+knn_model.fit(x_train, y_train)
+prediction = knn_model.predict(sample)
+votes.append(prediction[0])
+gender = '🟡 Edible' if prediction[0] == 1 else '⚫ Poisonous'
+print(gender, "is the predicted class by k-NN model")
+
+
+#######################
+
+# Naive Bayes Gaussian
+
+#######################
+
+naive_bayes_model = GaussianNB()
+naive_bayes_model.fit(x_train, y_train)
+prediction = naive_bayes_model.predict(sample)
+votes.append(prediction[0])
+gender = '🟡 Edible' if prediction[0] == 1 else '⚫ Poisonous'
+print(gender, "is the predicted class by Naive Bayes Gaussian model")
