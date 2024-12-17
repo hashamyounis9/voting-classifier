@@ -7,6 +7,9 @@ from sklearn import svm
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Input
