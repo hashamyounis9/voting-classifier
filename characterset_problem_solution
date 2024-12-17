@@ -1,0 +1,1 @@
+[console]::OutputEncoding = [System.Text.Encoding]::UTF8

@@ -24,5 +24,5 @@ def voting_simulation(cumulative_predictions : list ) -> list:
 def main():
     """main function"""
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()
