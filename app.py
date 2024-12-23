@@ -3,7 +3,6 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 import pandas as pd
 from mpi4py import MPI
-from voting import voting_simulation
 
 from sklearn import svm
 from sklearn.preprocessing import StandardScaler
@@ -16,8 +15,27 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Input
 
 
+def voting_simulation(cumulative_predictions : list ) -> list:  
+    final_output = []
 
+    for i in range(0, len(cumulative_predictions[0])):
+        count_one = 0
+        count_zero = 0
 
+        d = []
+        for x in range(0, len(cumulative_predictions)):
+            d.append(cumulative_predictions[x][i])
+
+        for j in range(0,len(d)):
+            if d[j] == 1:
+                count_one = count_one+1
+            else:
+                count_zero = count_zero+1
+        if count_one > count_zero:
+            final_output.append(1)
+        else:
+            final_output.append(0)
+    return final_output
 
 def make_pretty(predictions):
     pretty_predictions = []
@@ -26,14 +44,14 @@ def make_pretty(predictions):
             pretty_predictions.append("⚫")
         else:
             pretty_predictions.append("🟡")
-
     return pretty_predictions
 
 
 def simple_formatting(predictions, final_output):
-    
-    print("{:^6} | {:^6} | {:^6} | {:^6} | {:^6} | {:^6}".format("SVM", "ANN", "RF", "LR", "KNN", "Final"))
-    print("{:-^6} + {:-^6} + {:-^6} + {:-^6} + {:-^6} + {:-^6}".format("", "", "", "", "", "")) 
+
+    print("+{:-^6}+{:-^6}+{:-^6}+{:-^6}+{:-^6}+{:-^6}+".format("", "", "", "", "", "")) 
+    print("|{:^6}|{:^6}|{:^6}|{:^6}|{:^6}|{:^6}|".format("SVM", "ANN", "RF", "LR", "KNN", "Final"))
+    print("+{:-^6}+{:-^6}+{:-^6}+{:-^6}+{:-^6}+{:-^6}+".format("", "", "", "", "", "")) 
     final_output = make_pretty(final_output[:150])
     predictions[0] = make_pretty(predictions[0][:150])
     predictions[1] = make_pretty(predictions[1][:150]) 
@@ -42,7 +60,8 @@ def simple_formatting(predictions, final_output):
     predictions[4] = make_pretty(predictions[4][:150])
 
     for i in range(0, len(predictions[0])):
-        print("{:^5} | {:^5} | {:^5} | {:^5} | {:^5} | {:^5}".format(predictions[0][i], predictions[1][i], predictions[2][i], predictions[3][i], predictions[4][i], final_output[i]))
+        print("|{:^5}|{:^5}|{:^5}|{:^5}|{:^5}|{:^5}|"
+              .format(predictions[0][i], predictions[1][i], predictions[2][i], predictions[3][i], predictions[4][i], final_output[i]))
 
 
 
@@ -56,8 +75,23 @@ size = comm.Get_size()
 if rank == 0:
     data = pd.read_csv('sample.csv')
 
-    x = data[['cap_diameter', 'cap_shape', 'gill_attachment', 'gill_color', 'stem_height', 'stem_width', 'stem_color', 'season']].values
-    y = data[['class']].values.ravel()
+    x = data[
+        [
+            'cap_diameter', 
+            'cap_shape', 
+            'gill_attachment', 
+            'gill_color', 
+            'stem_height', 
+            'stem_width', 
+            'stem_color', 
+            'season'
+            ]
+        ].values
+    y = data[
+        [
+            'class'
+            ]
+        ].values.ravel()
 
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
     scaler = StandardScaler()
@@ -81,6 +115,10 @@ if rank == 0:
     predictions = [svm_predictinos, ann_predictions, rf_predictions, lr_predictions, knn_predictions]
 
     final_output = voting_simulation(predictions)
+    print()
+    print("🟡 = Edible")
+    print("⚫ = Poisonous")
+    print()
     print()
     print(simple_formatting(predictions=predictions, final_output=final_output))
 
