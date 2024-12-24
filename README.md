@@ -7,6 +7,12 @@ The **Voting Classifier** is an [Ensemble Learning](https://en.wikipedia.org/wik
   <img src="https://miro.medium.com/v2/resize:fit:640/format:webp/1*MX_lPIE0bcFrFytg2KAksg.png" alt="Voting Classifier" />
 </p>
 
+## Voting Classifier using MPI
+
+<p align="center">
+  <img src="architecture.jpeg" />
+</p>
+
 ## Features
 - Combines multiple classification models for better prediction results.
 - Demonstrates the use of ensemble learning techniques.
@@ -25,11 +31,6 @@ git clone https://github.com/hashamyounis9/voting-classifier.git
 Navigate to the project directory:
 ```bash
 cd voting-classifier
-```
-
-(Optional) Set up a virtual environment:
-```bash
-python -m venv venv
 ```
 
 Install the required dependencies:
