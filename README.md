@@ -33,11 +33,6 @@ Navigate to the project directory:
 cd voting-classifier
 ```
 
-(Optional) Set up a virtual environment:
-```bash
-python -m venv venv
-```
-
 Install the required dependencies:
 ```bash
 pip install -r requirements.txt
