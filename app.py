@@ -6,9 +6,7 @@ from mpi4py import MPI
 
 from sklearn import svm
 from sklearn.preprocessing import StandardScaler
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
@@ -71,7 +69,7 @@ def simple_formatting(predictions, final_output):
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
-size = comm.Get_size()
+size = comm.Get_size() # number of nodes
 
 if rank == 0:
     data = pd.read_csv('mushrooms.csv')
@@ -164,7 +162,7 @@ else:
             Dense(8, activation='relu'),
             Dense(1, activation='sigmoid')
         ])
-        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+        model.compile(optimizer='adam')
         model.fit(x_train, y_train, epochs=100, batch_size=16, verbose=0)
 
         # epochs=50, batch_size=8, accuracy: 0.90
