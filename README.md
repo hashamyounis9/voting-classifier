@@ -7,7 +7,7 @@ The **Voting Classifier** is an [Ensemble Learning](https://en.wikipedia.org/wik
   <img src="voting_classifier.png" alt="Voting Classifier" />
 </p>
 
-## Voting Classifier using MPI
+## Voting using MPI
 
 <p align="center">
   <img src="architecture.jpeg" />
