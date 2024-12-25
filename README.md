@@ -4,7 +4,7 @@
 The **Voting Classifier** is an [Ensemble Learning](https://en.wikipedia.org/wiki/Ensemble_learning) technique where multiple [Classification Algorithms](https://datascientest.com/en/classification-algorithms-definition-and-main-models) are combined to improve the final prediction. This approach can lead to better performance by aggregating the outputs of several individual models. Below is a diagram illustrating how a voting classifier works:
 
 <p align="center">
-  <img src="https://miro.medium.com/v2/resize:fit:640/format:webp/1*MX_lPIE0bcFrFytg2KAksg.png" alt="Voting Classifier" />
+  <img src="voting_classifier.png" alt="Voting Classifier" />
 </p>
 
 ## Voting Classifier using MPI
